@@ -1,12 +1,17 @@
 package org.casadocodigo.loja.controllers;
 
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 
 import org.casadocodigo.loja.daos.ProductDAO;
 import org.casadocodigo.loja.models.BookType;
 import org.casadocodigo.loja.models.Product;
+import org.casadocodigo.loja.validation.ProductValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,11 +25,19 @@ public class ProductController {
 	@Autowired
 	private ProductDAO productDAO;
 	
+	@InitBinder
+	protected void initBinder(WebDataBinder binder) {
+		binder.setValidator(new ProductValidator());
+	}
+	
 	@RequestMapping(method = RequestMethod.POST)
-	public String save(Product product, RedirectAttributes redirectAttributes) {
+	public ModelAndView save(@Valid Product product, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			return form();
+		}
 		productDAO.save(product);
 		redirectAttributes.addFlashAttribute("sucesso", "Produto cadastrado com sucesso");
-		return "redirect:produtos";
+		return new ModelAndView("redirect:produtos");
 	}
 	
 	@RequestMapping("/form")
